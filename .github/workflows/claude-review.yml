@@ -1,0 +1,38 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  workflow_dispatch:
+
+jobs:
+  claude-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Claude Code Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          # API 키 방식
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # 또는 OAuth 토큰 방식
+          #claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Review this PR focusing on:
+            1. Bugs or potential issues
+            2. Security vulnerabilities
+            3. Performance concerns
+            4. Code style and readability
+            5. Test coverage
+
+            Be concise. If the code looks good, say so briefly.
