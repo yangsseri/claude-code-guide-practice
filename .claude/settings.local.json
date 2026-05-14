@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh repo *)",
+      "Bash(mypy . *)",
+      "Bash(pytest *)",
+      "Bash(ruff check *)"
+    ]
+  }
+}
