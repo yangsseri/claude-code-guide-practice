@@ -1,0 +1,60 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(*rm -rf*)",
+            "command": "pwsh -NoProfile -Command $result = @{ continue = $false; stopReason = '⛔ Blocked: rm -rf is dangerous. Use specific deletion instead.' }; $result | ConvertTo-Json",
+            "timeout": 5,
+            "statusMessage": "Checking for dangerous rm -rf command..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(*DROP TABLE*)",
+            "command": "pwsh -NoProfile -Command $result = @{ continue = $false; stopReason = '⛔ Blocked: DROP TABLE is dangerous. Review carefully before proceeding.' }; $result | ConvertTo-Json",
+            "timeout": 5,
+            "statusMessage": "Checking for dangerous SQL DROP TABLE command..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(*git push --force*|*git push -f*)",
+            "command": "pwsh -NoProfile -Command $result = @{ continue = $false; stopReason = '⛔ Blocked: git push --force can overwrite others\\'work. Use git push --force-with-lease instead.' }; $result | ConvertTo-Json",
+            "timeout": 5,
+            "statusMessage": "Checking for dangerous git push --force..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(*git reset --hard*)",
+            "command": "pwsh -NoProfile -Command $result = @{ continue = $false; stopReason = '⛔ Blocked: git reset --hard discards changes. Use git reset instead.' }; $result | ConvertTo-Json",
+            "timeout": 5,
+            "statusMessage": "Checking for dangerous git reset --hard..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(*git branch -D*)",
+            "command": "pwsh -NoProfile -Command $result = @{ continue = $false; stopReason = '⛔ Blocked: git branch -D force deletes branches. Use git branch -d instead.' }; $result | ConvertTo-Json",
+            "timeout": 5,
+            "statusMessage": "Checking for dangerous git branch -D..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(*git clean -f*)",
+            "command": "pwsh -NoProfile -Command $result = @{ continue = $false; stopReason = '⛔ Blocked: git clean -f permanently deletes untracked files. Review first with git clean -n.' }; $result | ConvertTo-Json",
+            "timeout": 5,
+            "statusMessage": "Checking for dangerous git clean -f..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(git commit *)",
+            "command": "pwsh -NoProfile -Command $result = @{ continue = $true }; ruff check . 2>&1; if ($LASTEXITCODE -ne 0) { $result.continue = $false; $result.stopReason = 'Ruff check failed'; $result | ConvertTo-Json; exit 0 }; mypy . 2>&1; if ($LASTEXITCODE -ne 0) { $result.continue = $false; $result.stopReason = 'Mypy check failed'; $result | ConvertTo-Json; exit 0 }; pytest 2>&1; if ($LASTEXITCODE -ne 0) { $result.continue = $false; $result.stopReason = 'Pytest failed'; $result | ConvertTo-Json; exit 0 }; $result | ConvertTo-Json",
+            "timeout": 300,
+            "statusMessage": "Running pre-commit checks (ruff, mypy, pytest)..."
+          }
+        ]
+      }
+    ]
+  }
+}
